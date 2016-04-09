@@ -1,26 +1,51 @@
 # spec-kemal
 
-Kemal helpers for `spec` for easy testing.
+Kemal helpers to Crystal's `spec` for easy testing.
 
 ## Installation
 
+Add it to your `shard.yml`.
 
-TODO: Write installation instructions here
+```yaml
+name: your-kemal-app
+version: 0.1.0
 
+dependencies:
+  spec-kemal:
+    github: sdogruyol/spec-kemal
+    branch: master
+  kemal:
+    github: sdogruyol/kemal
+    branch: master
+```
 
 ## Usage
 
+Just require it before your files in your `spec/spec_helper.cr`
 
+```crystal
+require "spec-kemal"
+require "../src/your-kemal-app"
+```
 
-TODO: Write usage instructions here
+Now you can access your `Kemal` application in your `spec`s.
 
-## Development
+```crystal
+# spec/your-kemal-app-spec.cr
 
-TODO: Write development instructions here
+describe "Your::Kemal::App" do
+
+  it "renders #index" do
+    response = HTTP::Client.get "http://localhost:3000/"
+    response.body.should eq "Hello World!"
+  end
+
+end
+```
 
 ## Contributing
 
-1. Fork it ( https://github.com/[your-github-name]/spec-kemal/fork )
+1. Fork it ( https://github.com/sdogruyol/spec-kemal/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -28,4 +53,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [[your-github-name]](https://github.com/[your-github-name]) Sdogruyol - creator, maintainer
+- [sdogruyol](https://github.com/sdogruyol) Sdogruyol - creator, maintainer
