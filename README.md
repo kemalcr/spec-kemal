@@ -28,7 +28,21 @@ require "spec-kemal"
 require "../src/your-kemal-app"
 ```
 
-Now you can access your `Kemal` application in your `spec`s.
+Your Kemal application
+
+```crystal
+# src/your-kemal-app.cr
+
+require "kemal"
+
+get "/" do
+  "Hello World!"
+end
+
+Kemal.run
+```
+
+Now you can easily test your `Kemal` application in your `spec`s.
 
 ```crystal
 # spec/your-kemal-app-spec.cr
