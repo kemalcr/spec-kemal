@@ -48,12 +48,16 @@ Now you can easily test your `Kemal` application in your `spec`s.
 # spec/your-kemal-app-spec.cr
 
 describe "Your::Kemal::App" do
+  # Be sure to start your app in test mode
+  start
 
   it "renders #index" do
     response = HTTP::Client.get "http://localhost:3000/"
     response.body.should eq "Hello World!"
   end
 
+  # Be sure to stop your app after the specs
+  stop
 end
 ```
 
