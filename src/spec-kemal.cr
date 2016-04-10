@@ -9,7 +9,7 @@ APP_URL = "http://localhost:#{APP_PORT}"
 Kemal.config.env = APP_ENV
 Kemal.config.port = APP_PORT
 
-Spec.before_each do
+def start
   spawn do
     Kemal.run
     Kemal.config.server.listen
@@ -17,10 +17,9 @@ Spec.before_each do
   sleep TIME_TO_SLEEP
 end
 
-Spec.after_each do
-  spawn do
-    Kemal.config.server.close
-  end
+def stop
+  Kemal.config.server.close
+  sleep TIME_TO_SLEEP
 end
 
 {% for method in %w(get post put head delete patch) %}
