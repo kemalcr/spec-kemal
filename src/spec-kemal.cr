@@ -2,11 +2,13 @@ require "spec"
 require "kemal"
 
 TIME_TO_SLEEP = 0.00001
+APP_HOST_BINDING = "127.0.0.1"
 APP_PORT = 1989
 APP_ENV = "test"
 APP_URL = "http://localhost:#{APP_PORT}"
 
 Kemal.config.env = APP_ENV
+Kemal.config.host_binding = APP_HOST_BINDING
 Kemal.config.port = APP_PORT
 
 def start
