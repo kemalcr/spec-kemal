@@ -10,17 +10,18 @@ APP_URL = "http://localhost:#{APP_PORT}"
 Kemal.config.env = APP_ENV
 Kemal.config.host_binding = APP_HOST_BINDING
 Kemal.config.port = APP_PORT
+Kemal.config.logging = false
 
 def start
   spawn do
     Kemal.run
-    Kemal.config.server.listen
+    Kemal.config.server.not_nil!.listen
   end
   sleep TIME_TO_SLEEP
 end
 
 def stop
-  Kemal.config.server.close
+  Kemal.config.server.not_nil!.close
   sleep TIME_TO_SLEEP
 end
 
