@@ -12,6 +12,8 @@ Kemal.config.host_binding = APP_HOST_BINDING
 Kemal.config.port = APP_PORT
 Kemal.config.logging = false
 
+$response : HTTP::Client::Response?
+
 def start
   spawn do
     Kemal.run
@@ -27,6 +29,10 @@ end
 
 {% for method in %w(get post put head delete patch) %}
   def {{method.id}}(path, headers : HTTP::Headers? = nil, body : String? = nil)
-    HTTP::Client.{{method.id}}(APP_URL + path, headers, body)
+    $response = HTTP::Client.{{method.id}}(APP_URL + path, headers, body)
   end
 {% end %}
+
+def response
+  $response.not_nil!
+end

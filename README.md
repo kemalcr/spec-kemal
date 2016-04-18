@@ -50,10 +50,10 @@ Now you can easily test your `Kemal` application in your `spec`s.
 describe "Your::Kemal::App" do
   # Be sure to start your app in test mode
   start
-  
+
   # You can use get,post,put,patch,delete to call the corresponding route.
   it "renders /" do
-    response = get "/"
+    get "/"
     response.body.should eq "Hello World!"
   end
 
