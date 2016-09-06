@@ -10,7 +10,7 @@ end
 post "/user" do |env|
   env.response.content_type = "application/json"
   name = env.params.json["name"]
-  age = env.params.json["age"] as Int
-  skills = env.params.json["skills"] as Array
+  age = env.params.json["age"]
+  skills = env.params.json["skills"]
   {"name": name, "age": age, "skills": skills}.to_json
 end
