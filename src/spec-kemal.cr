@@ -1,15 +1,6 @@
 require "spec"
 require "kemal"
 
-TIME_TO_SLEEP = 0.00001
-APP_HOST_BINDING = "127.0.0.1"
-APP_PORT = 1989
-APP_ENV = "test"
-APP_URL = "http://localhost:#{APP_PORT}"
-
-Kemal.config.env = APP_ENV
-Kemal.config.host_binding = APP_HOST_BINDING
-Kemal.config.port = APP_PORT
 Kemal.config.logging = false
 
 class Global
@@ -21,27 +12,36 @@ class Global
   def self.response
     @@response
   end
-
-end
-
-def start
-  spawn do
-    Kemal.run
-    Kemal.config.server.not_nil!.listen
-  end
-  sleep TIME_TO_SLEEP
-end
-
-def stop
-  Kemal.config.server.not_nil!.close
-  sleep TIME_TO_SLEEP
 end
 
 {% for method in %w(get post put head delete patch) %}
   def {{method.id}}(path, headers : HTTP::Headers? = nil, body : String? = nil)
-    Global.response = HTTP::Client.{{method.id}}(APP_URL + path, headers, body)
+    request = HTTP::Request.new("{{method.id}}", path, headers, body )
+    Global.response = process_request request
   end
 {% end %}
+
+def process_request(request)
+  io = MemoryIO.new
+  response = HTTP::Server::Response.new(io)
+  context = HTTP::Server::Context.new(request, response)
+  main_handler = build_main_handler
+  main_handler.call context
+  response.close
+  io.rewind
+  client_response = HTTP::Client::Response.from_io(io, decompress: false)
+  Global.response = client_response
+end
+
+def build_main_handler
+  main_handler = Kemal.config.handlers.first
+  current_handler = main_handler
+  Kemal.config.handlers.each_with_index do |handler, index|
+    current_handler.next = handler
+    current_handler = handler
+  end
+  main_handler
+end
 
 def response
   Global.response.not_nil!
