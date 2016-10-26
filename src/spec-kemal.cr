@@ -16,7 +16,7 @@ end
 
 {% for method in %w(get post put head delete patch) %}
   def {{method.id}}(path, headers : HTTP::Headers? = nil, body : String? = nil)
-    request = HTTP::Request.new("{{method.id}}", path, headers, body )
+    request = HTTP::Request.new("{{method.id}}".upcase, path, headers, body )
     Global.response = process_request request
   end
 {% end %}
