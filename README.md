@@ -44,12 +44,14 @@ Kemal.run
 
 Now you can easily test your `Kemal` application in your `spec`s.
 
+```
+KEMAL_ENV=test crystal spec
+```
+
 ```crystal
 # spec/your-kemal-app-spec.cr
 
 describe "Your::Kemal::App" do
-  # Be sure to start your app in test mode
-  start
 
   # You can use get,post,put,patch,delete to call the corresponding route.
   it "renders /" do
@@ -57,8 +59,6 @@ describe "Your::Kemal::App" do
     response.body.should eq "Hello World!"
   end
 
-  # Be sure to stop your app after the specs
-  stop
 end
 ```
 
