@@ -12,10 +12,10 @@ version: 0.1.0
 
 dependencies:
   spec-kemal:
-    github: sdogruyol/spec-kemal
+    github: kemalcr/spec-kemal
     branch: master
   kemal:
-    github: sdogruyol/kemal
+    github: kemalcr/kemal
     branch: master
 ```
 
@@ -64,7 +64,7 @@ end
 
 ## Contributing
 
-1. Fork it ( https://github.com/sdogruyol/spec-kemal/fork )
+1. Fork it ( https://github.com/kemalcr/spec-kemal/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
