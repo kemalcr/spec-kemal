@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "SpecKemalApp" do
   it "handles get" do
-    Kemal::RouteHandler::INSTANCE.add_route "GET", "/" do
+    get "/" do
       "Hello world"
     end
     get "/"
@@ -10,7 +10,7 @@ describe "SpecKemalApp" do
   end
 
   it "handles post" do
-    Kemal::RouteHandler::INSTANCE.add_route "POST", "/user" do |env|
+    post "/user" do |env|
       env.params.json.to_json
     end
     json_body = {"name": "Serdar", "age": 27, "skills": ["crystal, kemal"]}
