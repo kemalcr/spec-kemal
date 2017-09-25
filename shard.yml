@@ -4,7 +4,6 @@ version: 0.3.0
 development_dependencies:
   kemal:
     github: sdogruyol/kemal
-    branch: v0.17.3
 
 authors:
   - Sdogruyol <dogruyolserdar@gmail.com>
