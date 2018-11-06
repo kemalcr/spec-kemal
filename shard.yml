@@ -1,9 +1,10 @@
 name: spec-kemal
-version: 0.3.0
+version: 0.5.0
 
 development_dependencies:
   kemal:
     github: sdogruyol/kemal
+    version: 0.25.1
 
 authors:
   - Sdogruyol <dogruyolserdar@gmail.com>
