@@ -17,4 +17,12 @@ describe "SpecKemalApp" do
     post("/user", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: json_body.to_json)
     response.body.should eq(json_body.to_json)
   end
+
+  it "handles options" do
+    options "/user" do |env|
+      "Hello world"
+    end
+    options "/user"
+    response.body.should eq "Hello world"
+  end
 end

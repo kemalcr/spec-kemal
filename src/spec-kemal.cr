@@ -14,7 +14,7 @@ class Global
   end
 end
 
-{% for method in %w(get post put head delete patch) %}
+{% for method in %w(get post put head delete patch options) %}
   def {{method.id}}(path, headers : HTTP::Headers? = nil, body : String? = nil)
     request = HTTP::Request.new("{{method.id}}".upcase, path, headers, body )
     Global.response = process_request request
