@@ -1,18 +1,18 @@
-version: 1.0
+version: 2.0
 shards:
   exception_page:
-    github: crystal-loot/exception_page
-    version: 0.1.1
+    git: https://github.com/crystal-loot/exception_page.git
+    version: 0.1.4
 
   kemal:
-    github: sdogruyol/kemal
-    version: 0.25.1
+    git: https://github.com/kemalcr/kemal.git
+    version: 1.0.0
 
   kilt:
-    github: jeromegn/kilt
+    git: https://github.com/jeromegn/kilt.git
     version: 0.4.0
 
   radix:
-    github: luislavena/radix
-    version: 0.3.8
+    git: https://github.com/luislavena/radix.git
+    version: 0.4.1
 
