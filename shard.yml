@@ -1,5 +1,5 @@
 name: spec-kemal
-version: 0.5.0
+version: 0.5.1
 crystal: '< 2.0.0'
 
 development_dependencies:
