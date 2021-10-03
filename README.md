@@ -65,12 +65,7 @@ end
 #### Rescue errors
 Errors gets rescued by default which results in the Kemal's exception page is rendered.  
 This may not always be the desired behaviour, e.g. when a JSON parsing error occurs one might expect `"[]"`
-and not Kemal's exception page.
-
-```
-Expected: "[]"
-Got: "<!DOCTYPE html>\n<html>\n<head>\n    \n    <meta charset=\"utf-8\">\n    <title>Error 500 at GET / - Missing JSON attribute: names</title>\n    <meta name=\"viewport\" content=\"width=device-width\">\n    <style>/*! normalize.css v4.2.0 | MIT License | github.
-```
+and not Kemal's exception page.  
 
 Set `Kemal.config.always_rescue = false` to prevent this behaviour and raise errors instead.
 
