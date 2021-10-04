@@ -62,6 +62,13 @@ describe "Your::Kemal::App" do
 end
 ```
 
+#### Rescue errors
+Errors gets rescued by default which results in the Kemal's exception page is rendered.  
+This may not always be the desired behaviour, e.g. when a JSON parsing error occurs one might expect `"[]"`
+and not Kemal's exception page.  
+
+Set `Kemal.config.always_rescue = false` to prevent this behaviour and raise errors instead.
+
 ## Contributing
 
 1. Fork it ( https://github.com/kemalcr/spec-kemal/fork )
