@@ -5,7 +5,8 @@ crystal: '< 2.0.0'
 development_dependencies:
   kemal:
     github: kemalcr/kemal
-    version: 1.0.0
+  kemal-session:
+    github: kemalcr/kemal-session
 
 authors:
   - Sdogruyol <dogruyolserdar@gmail.com>
