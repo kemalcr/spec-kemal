@@ -62,6 +62,26 @@ describe "Your::Kemal::App" do
 end
 ```
 
+### Kemal Session
+
+If you are using [Kemal Session](https://github.com/kemalcr/kemal-session) in your application it's possible to test session related features as well.
+
+To do that require `"spec-kemal/session"` instead of just `spec-kemal`, then
+you can use `with_session` to create a session for your requests.
+
+```crystal
+require "spec-kemal/session"
+
+it "works with sessions" do
+  with_session do |session|
+    session.bigint("user_id", 12345) # sets a session value
+
+    get "/dashboard"
+    response.body.should eq "session value"
+  end
+end
+```
+
 #### Rescue errors
 Errors gets rescued by default which results in the Kemal's exception page is rendered.  
 This may not always be the desired behaviour, e.g. when a JSON parsing error occurs one might expect `"[]"`

@@ -21,9 +21,20 @@ end
   end
 {% end %}
 
-def process_request(request)
+private def process_request(request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
+
+  # Inject session cookie if exists
+  if Global.responds_to?(:session?)
+    session = Global.session?
+    if session
+      session_cookie = HTTP::Cookie.new(Kemal::Session.config.cookie_name,
+        Kemal::Session.encode(session.id))
+      request.cookies << session_cookie
+    end
+  end
+
   context = HTTP::Server::Context.new(request, response)
   main_handler = build_main_handler
   main_handler.call context
@@ -33,7 +44,7 @@ def process_request(request)
   Global.response = client_response
 end
 
-def build_main_handler
+private def build_main_handler
   main_handler = Kemal.config.handlers.first
   current_handler = main_handler
   Kemal.config.handlers.each_with_index do |handler, index|
