@@ -14,9 +14,9 @@ class Global
   end
 end
 
-{% for method in %w(get post put head delete patch) %}
-  def {{method.id}}(path, headers : HTTP::Headers? = nil, body : String? = nil)
-    request = HTTP::Request.new("{{method.id}}".upcase, path, headers, body )
+{% for method in %w[get post put head delete patch] %}
+  def {{ method.id }}(path, headers : HTTP::Headers? = nil, body : String? = nil)
+    request = HTTP::Request.new("{{ method.id }}".upcase, path, headers, body )
     Global.response = process_request request
   end
 {% end %}
@@ -47,7 +47,7 @@ end
 private def build_main_handler
   main_handler = Kemal.config.handlers.first
   current_handler = main_handler
-  Kemal.config.handlers.each_with_index do |handler, index|
+  Kemal.config.handlers.each do |handler|
     current_handler.next = handler
     current_handler = handler
   end
@@ -55,5 +55,7 @@ private def build_main_handler
 end
 
 def response
+  # ameba:disable Lint/NotNil
   Global.response.not_nil!
+  # ameba:enable Lint/NotNil
 end

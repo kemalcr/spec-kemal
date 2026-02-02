@@ -1,5 +1,7 @@
 # spec-kemal
 
+[![CI](https://github.com/kemalcr/spec-kemal/actions/workflows/ci.yml/badge.svg)](https://github.com/kemalcr/spec-kemal/actions/workflows/ci.yml)
+
 Kemal helpers to Crystal's `spec` for easy testing.
 
 ## Installation
