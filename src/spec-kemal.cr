@@ -181,5 +181,7 @@ end
 #
 # Raises `NilAssertionError` if called before making a request.
 def response : HTTP::Client::Response
+  # ameba:disable Lint/NotNil
   Global.response.not_nil!
+  # ameba:enable Lint/NotNil
 end

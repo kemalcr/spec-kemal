@@ -88,12 +88,12 @@ describe "spec-kemal" do
         post "/login" do |env|
           username = env.params.body["username"]? || "none"
           password = env.params.body["password"]? || "none"
-          "Login: #{username}"
+          "Login: #{username} password: #{password}"
         end
         post "/login",
           headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
           body: "username=admin&password=secret"
-        response.body.should eq "Login: admin"
+        response.body.should eq "Login: admin password: secret"
       end
 
       it "handles post with empty body" do
@@ -163,7 +163,6 @@ describe "spec-kemal" do
     describe "DELETE" do
       it "handles delete request" do
         delete "/users/:id" do |env|
-          id = env.params.url["id"]
           env.response.status_code = 204
           ""
         end
