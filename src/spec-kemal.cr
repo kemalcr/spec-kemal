@@ -5,7 +5,7 @@
 #
 # ## Basic Usage
 #
-# ```crystal
+# ```
 # require "spec-kemal"
 #
 # describe "My App" do
@@ -61,7 +61,7 @@ end
 #
 # ## Examples
 #
-# ```crystal
+# ```
 # # Simple GET request
 # get "/"
 #
@@ -161,7 +161,7 @@ end
 #
 # ## Example
 #
-# ```crystal
+# ```
 # get "/users"
 #
 # response.status_code.should eq 200

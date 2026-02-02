@@ -18,13 +18,13 @@
 #
 # Require this module instead of the base spec-kemal:
 #
-# ```crystal
+# ```
 # require "spec-kemal/session"
 # ```
 #
 # Configure the session secret in your spec helper:
 #
-# ```crystal
+# ```
 # Spec.before_each do
 #   Kemal::Session.config.secret = "test-secret"
 # end
@@ -32,7 +32,7 @@
 #
 # Use `with_session` to test session-based features:
 #
-# ```crystal
+# ```
 # it "shows user dashboard" do
 #   with_session do |session|
 #     session.int("user_id", 42)
@@ -91,7 +91,7 @@ end
 #
 # ## Example
 #
-# ```crystal
+# ```
 # it "requires login" do
 #   get "/dashboard"
 #   response.status_code.should eq 401
@@ -112,13 +112,13 @@ end
 #
 # ## Available Session Methods
 #
-# ```crystal
-# session.string("key", "value")     # Store a String
-# session.int("key", 42)             # Store an Int32
-# session.bigint("key", 123_i64)     # Store an Int64
-# session.float("key", 3.14)         # Store a Float64
-# session.bool("key", true)          # Store a Bool
-# session.object("key", user)        # Store any JSON-serializable object
+# ```
+# session.string("key", "value") # Store a String
+# session.int("key", 42)         # Store an Int32
+# session.bigint("key", 123_i64) # Store an Int64
+# session.float("key", 3.14)     # Store a Float64
+# session.bool("key", true)      # Store a Bool
+# session.object("key", user)    # Store any JSON-serializable object
 # ```
 #
 # ## Notes
