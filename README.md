@@ -61,6 +61,7 @@ require "../src/your-kemal-app"
 
 Spec.before_each do
   Kemal.config.env = "test"
+  Kemal.config.setup
 end
 
 Spec.after_each do
@@ -385,17 +386,6 @@ end
    ```crystal
    Kemal::Session.config.secret = "test-secret"
    ```
-
-### Handlers Not Being Called
-
-Make sure `Kemal.config.setup` is called:
-
-```crystal
-Spec.before_each do
-  Kemal.config.env = "test"
-  Kemal.config.setup
-end
-```
 
 ## Contributing
 
