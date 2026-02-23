@@ -1,3 +1,7 @@
+# 1.1.1 (23-02-2026)
+
+- Fix `undefined method 'session?' for Global.class` when using spec-kemal without the session extension. Thanks @sdogruyol :pray:
+
 # 1.1.0 (02-02-2026)
 
 - Session testing support via `with_session` helper [#23](https://github.com/kemalcr/spec-kemal/pull/23) Thanks @hugopl :pray:
