@@ -56,6 +56,18 @@ class Global
   class_property? session : Kemal::Session?
 end
 
+# Register session cookie injection with the base library.
+# This runs on every request when a session is set (e.g. inside with_session).
+SessionInjector.register do |request|
+  if session = Global.session?
+    session_cookie = HTTP::Cookie.new(
+      Kemal::Session.config.cookie_name,
+      Kemal::Session.encode(session.id)
+    )
+    request.cookies << session_cookie
+  end
+end
+
 # Creates a new Kemal session for testing.
 #
 # This method:

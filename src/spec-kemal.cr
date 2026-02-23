@@ -31,6 +31,21 @@ require "kemal"
 # Disable logging by default for cleaner test output
 Kemal.config.logging = false
 
+# Internal hook for session cookie injection. When spec-kemal/session is required,
+# it registers a callback here. This avoids referencing Global.session? in the
+# base library, which would fail to compile when the session extension is not used.
+class SessionInjector
+  @@callback : (HTTP::Request -> Nil)? = nil
+
+  def self.register(&block : HTTP::Request -> Nil)
+    @@callback = block
+  end
+
+  def self.run(request : HTTP::Request) : Nil
+    @@callback.try(&.call(request))
+  end
+end
+
 # Internal class for storing the response between requests.
 # This allows the `response` helper method to access the last response.
 #
@@ -110,18 +125,8 @@ private def process_request(request : HTTP::Request) : HTTP::Client::Response
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
 
-  # Inject session cookie if session support is loaded and a session exists.
-  # This allows testing of session-based features.
-  if Global.responds_to?(:session?)
-    session = Global.session?
-    if session
-      session_cookie = HTTP::Cookie.new(
-        Kemal::Session.config.cookie_name,
-        Kemal::Session.encode(session.id)
-      )
-      request.cookies << session_cookie
-    end
-  end
+  # Inject session cookie if session support is loaded (callback registered by spec-kemal/session).
+  SessionInjector.run(request)
 
   # Create the server context and process through handlers
   context = HTTP::Server::Context.new(request, response)
