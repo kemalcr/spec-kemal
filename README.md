@@ -111,6 +111,7 @@ spec-kemal provides helper methods for all standard HTTP verbs:
 | `patch(path, headers?, body?)` | Sends a PATCH request |
 | `delete(path, headers?, body?)` | Sends a DELETE request |
 | `head(path, headers?, body?)` | Sends a HEAD request |
+| `options(path, headers?, body?)` | Sends an OPTIONS request |
 
 **Parameters:**
 
