@@ -195,7 +195,20 @@ describe "spec-kemal" do
         end
         head "/status"
         response.status_code.should eq 200
-        # HEAD requests don't return body
+        response.headers["X-Status"].should eq "OK"
+        response.body.should eq ""
+      end
+    end
+
+    describe "OPTIONS" do
+      it "handles options request" do
+        options "/resource" do |env|
+          env.response.headers["Allow"] = "GET, POST, OPTIONS"
+          ""
+        end
+        options "/resource"
+        response.status_code.should eq 200
+        response.headers["Allow"].should eq "GET, POST, OPTIONS"
       end
     end
   end
@@ -353,8 +366,8 @@ describe "spec-kemal" do
         response.body.should eq "test_value"
       end
 
-      # Session should be cleared after the block
-      # New request without session should not have the value
+      get "/check_session"
+      response.body.should eq "no session"
     end
 
     it "handles multiple session values" do

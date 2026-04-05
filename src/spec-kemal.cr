@@ -24,6 +24,7 @@
 # - `patch(path, headers?, body?)` - Send PATCH request
 # - `delete(path, headers?, body?)` - Send DELETE request
 # - `head(path, headers?, body?)` - Send HEAD request
+# - `options(path, headers?, body?)` - Send OPTIONS request
 
 require "spec"
 require "kemal"
@@ -91,7 +92,7 @@ end
 # # DELETE request
 # delete "/api/users/1"
 # ```
-{% for method in %w[get post put head delete patch] %}
+{% for method in %w[get post put patch delete head options] %}
   # Sends a {{ method.id.upcase }} request to the specified path.
   #
   # ## Parameters
@@ -108,7 +109,7 @@ end
   # ```
   def {{ method.id }}(path : String, headers : HTTP::Headers? = nil, body : String? = nil) : HTTP::Client::Response
     request = HTTP::Request.new("{{ method.id }}".upcase, path, headers, body)
-    Global.response = process_request(request)
+    process_request(request)
   end
 {% end %}
 
