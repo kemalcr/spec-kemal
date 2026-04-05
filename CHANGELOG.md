@@ -1,3 +1,10 @@
+# 1.2.0 (05-04-2026)
+
+- Add `options` HTTP helper for CORS and preflight-style tests.
+- Deduplicate `Global.response` assignment in request helpers.
+- Strengthen specs: HEAD body assertion, session cleanup after `with_session`.
+- CI: fail the build when Ameba reports issues (remove `continue-on-error`).
+
 # 1.1.1 (23-02-2026)
 
 - Fix `undefined method 'session?' for Global.class` when using spec-kemal without the session extension. Thanks @sdogruyol :pray:
