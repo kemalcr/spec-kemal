@@ -85,4 +85,3 @@ jobs:
 
       - name: Run Ameba
         run: ameba
-        continue-on-error: true
