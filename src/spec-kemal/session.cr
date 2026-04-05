@@ -43,7 +43,6 @@
 # end
 # ```
 
-require "./version"
 require "../spec-kemal"
 require "kemal-session"
 
