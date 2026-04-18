@@ -9,6 +9,6 @@ development_dependencies:
     github: kemalcr/kemal-session
 
 authors:
-  - Sdogruyol <dogruyolserdar@gmail.com>
+  - Serdar Dogruyol <dogruyolserdar@gmail.com>
 
 license: MIT
