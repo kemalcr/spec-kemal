@@ -32,6 +32,39 @@ require "kemal"
 # Disable logging by default for cleaner test output
 Kemal.config.logging = false
 
+# Links Kemal's [HTTP::Handler] chain. Used by [process_request] and [./spec-kemal/websocket] WebSocket flow.
+module SpecKemal
+  def self.build_main_handler : HTTP::Handler
+    main_handler = Kemal.config.handlers.first
+    current_handler = main_handler
+
+    Kemal.config.handlers.each do |handler|
+      current_handler.next = handler
+      current_handler = handler
+    end
+
+    main_handler
+  end
+
+  # In-memory handler run. Does **not** call [HTTP::Server::Response#upgrade_handler]; use
+  # the top-level `connect_websocket` helper for full WebSocket message tests.
+  def self.process_request(request : HTTP::Request) : HTTP::Client::Response
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+
+    SessionInjector.run(request)
+
+    context = HTTP::Server::Context.new(request, response)
+    main_handler = build_main_handler
+    main_handler.call(context)
+
+    response.close
+    io.rewind
+    client_response = HTTP::Client::Response.from_io(io, decompress: false)
+    Global.response = client_response
+  end
+end
+
 # Internal hook for session cookie injection. When spec-kemal/session is required,
 # it registers a callback here. This avoids referencing Global.session? in the
 # base library, which would fail to compile when the session extension is not used.
@@ -109,55 +142,9 @@ end
   # ```
   def {{ method.id }}(path : String, headers : HTTP::Headers? = nil, body : String? = nil) : HTTP::Client::Response
     request = HTTP::Request.new("{{ method.id }}".upcase, path, headers, body)
-    process_request(request)
+    SpecKemal.process_request(request)
   end
 {% end %}
-
-# Processes an HTTP request through Kemal's handler chain.
-#
-# This method simulates a full HTTP request/response cycle by:
-# 1. Creating an in-memory IO for the response
-# 2. Injecting session cookies if session support is enabled
-# 3. Building and executing the Kemal handler chain
-# 4. Parsing and returning the response
-#
-# NOTE: This is a private method used internally by the HTTP helper methods.
-private def process_request(request : HTTP::Request) : HTTP::Client::Response
-  io = IO::Memory.new
-  response = HTTP::Server::Response.new(io)
-
-  # Inject session cookie if session support is loaded (callback registered by spec-kemal/session).
-  SessionInjector.run(request)
-
-  # Create the server context and process through handlers
-  context = HTTP::Server::Context.new(request, response)
-  main_handler = build_main_handler
-  main_handler.call(context)
-
-  # Close the response and parse it as a client response
-  response.close
-  io.rewind
-  client_response = HTTP::Client::Response.from_io(io, decompress: false)
-  Global.response = client_response
-end
-
-# Builds the Kemal handler chain by linking all configured handlers together.
-#
-# Kemal uses a chain of handlers (middleware) to process requests.
-# This method links them together so each handler can call the next.
-#
-# NOTE: This is a private method used internally.
-private def build_main_handler : HTTP::Handler
-  main_handler = Kemal.config.handlers.first
-  current_handler = main_handler
-
-  Kemal.config.handlers.each do |handler|
-    current_handler.next = handler
-    current_handler = handler
-  end
-
-  main_handler
-end
 
 # Returns the response from the last HTTP request.
 #
@@ -191,3 +178,5 @@ def response : HTTP::Client::Response
   Global.response.not_nil!
   # ameba:enable Lint/NotNil
 end
+
+require "./spec-kemal/websocket"

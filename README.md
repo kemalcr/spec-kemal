@@ -12,6 +12,7 @@ Testing helpers for the [Kemal](https://kemalcr.com) web framework. Write expres
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
   - [HTTP Methods](#http-methods)
+  - [WebSocket testing](#websocket-testing)
   - [Response Object](#response-object)
   - [Headers](#headers)
   - [Request Body](#request-body)
@@ -118,6 +119,99 @@ spec-kemal provides helper methods for all standard HTTP verbs:
 - `path : String` - The request path (e.g., `"/users"`, `"/api/v1/posts?page=2"`)
 - `headers : HTTP::Headers?` - Optional HTTP headers
 - `body : String?` - Optional request body
+
+An additional overload is available for GET with a WebSocket handshake:
+
+- `get(path, headers?, body?, *, websocket : Bool)` — when `websocket` is `true`, builds a valid `Upgrade: websocket` request (see [WebSocket testing](#websocket-testing)).
+
+### WebSocket testing
+
+Kemal exposes WebSockets with `ws "/path"`. spec-kemal splits testing into **handshake-only** (fast, in-memory) and **full duplex** (real upgrade, your `on_message` runs).
+
+| Approach | API | `ws` handler runs? | Typical assertions |
+|----------|-----|-------------------|--------------------|
+| Handshake only | `get path, websocket: true` or `SpecKemal.process_request` + `websocket_request_headers` | No | **101**, `Sec-WebSocket-Accept`, **400** / **426** on bad requests |
+| Messages | `connect_websocket` | Yes | Echo, broadcast, auth via `Origin` / cookies |
+
+Handshake-only requests go through `SpecKemal.process_request`, which does **not** call [HTTP::Server::Response#upgrade_handler](https://crystal-lang.org/api/latest/HTTP/Server/Response.html). That matches normal `get`/`post` helpers: the route is matched and the upgrade response is built, but no WebSocket I/O runs. Use `connect_websocket` whenever you need `socket.on_message`, pings, or closing behavior.
+
+Assume an echo route (adjust the path to your app):
+
+```crystal
+ws "/chat" do |socket, _env|
+  socket.on_message { |message| socket.send message }
+end
+```
+
+#### Handshake-only (`get …, websocket: true`)
+
+```crystal
+get "/chat", websocket: true
+
+response.status_code.should eq 101
+response.headers["Upgrade"].should eq "websocket"
+```
+
+To assert `Sec-WebSocket-Accept` for a **known** key (RFC 6455 test vector), pass headers from `websocket_request_headers(sec_key:)` into `get` (`connect_websocket` also accepts `sec_key:` for the same purpose):
+
+```crystal
+key = "dGhlIHNhbXBsZSBub25jZQ=="
+headers = websocket_request_headers(sec_key: key)
+get "/chat", headers: headers, websocket: true
+
+response.status_code.should eq 101
+response.headers["Sec-WebSocket-Accept"].should eq HTTP::WebSocket::Protocol.key_challenge(key)
+```
+
+Invalid handshakes are ordinary HTTP responses — still in-memory (reuse the same `/chat` route):
+
+```crystal
+bad = websocket_request_headers
+bad.delete "Sec-WebSocket-Key"
+SpecKemal.process_request HTTP::Request.new("GET", "/chat", bad)
+response.status_code.should eq 400
+
+bad = websocket_request_headers
+bad["Sec-WebSocket-Version"] = "7"
+SpecKemal.process_request HTTP::Request.new("GET", "/chat", bad)
+response.status_code.should eq 426
+```
+
+#### Full session (`connect_websocket`)
+
+Runs the real upgrade on a loopback socket pair (UNIX socket pair on Unix-like systems, TCP on Windows), then yields a client [HTTP::WebSocket](https://crystal-lang.org/api/latest/HTTP/WebSocket.html). After the block returns, the client and server I/O are closed. The last `response` is the client’s **101 Switching Protocols** handshake.
+
+Pattern: register `on_message`, **spawn** `client.run` so frames are processed, **yield** once so the fiber starts, then `send` / assert on a `Channel`:
+
+```crystal
+connect_websocket "/chat" do |client|
+  replies = Channel(String).new(1)
+  client.on_message { |message| replies.send message }
+  spawn { client.run }
+  Fiber.yield
+
+  client.send "hello"
+  replies.receive.should eq "hello"
+end
+
+response.status_code.should eq 101
+```
+
+Optional keyword arguments on `connect_websocket`:
+
+- `headers` — merged after the default WebSocket upgrade headers (e.g. `Authorization`, extra cookies).
+- `sec_key` — fixed `Sec-WebSocket-Key` for deterministic `Sec-WebSocket-Accept` checks.
+- `origin` — sets `Origin` when your handler rejects unknown origins.
+
+```crystal
+connect_websocket "/chat", origin: "https://myapp.test" do |client|
+  # ...
+end
+```
+
+For the same handshake object **inside** the block (not only via `response` after), use `inner_connect_websocket` (advanced; see `src/spec-kemal/websocket.cr`).
+
+When you `require "spec-kemal/session"`, cookies from `with_session` apply to both `get(..., websocket: true)` and `connect_websocket`, the same as for normal HTTP helpers.
 
 ### Response Object
 

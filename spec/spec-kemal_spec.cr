@@ -513,4 +513,47 @@ describe "spec-kemal" do
       response.body.size.should eq 10000
     end
   end
+
+  describe "WebSocket" do
+    it "returns 101 and Sec-WebSocket-Accept for a valid upgrade (in-memory; ws block not run)" do
+      ws "/ws-mem" do |socket, _|
+        socket.on_message { |_| socket.send "never" }
+      end
+      get "/ws-mem", websocket: true
+      key = "dGhlIHNhbXBsZSBub25jZQ=="
+      response.status_code.should eq 101
+      response.headers["Sec-WebSocket-Accept"].should eq \
+        HTTP::WebSocket::Protocol.key_challenge(key)
+    end
+
+    it "rejects bad Sec-WebSocket-Version" do
+      ws "/ws-ver" { |_| }
+      h = websocket_request_headers
+      h["Sec-WebSocket-Version"] = "7"
+      SpecKemal.process_request(HTTP::Request.new("GET", "/ws-ver", h, nil))
+      response.status_code.should eq 426
+    end
+
+    it "rejects missing Sec-WebSocket-Key" do
+      ws "/ws-key" { |_| }
+      h = websocket_request_headers
+      h.delete "Sec-WebSocket-Key"
+      SpecKemal.process_request(HTTP::Request.new("GET", "/ws-key", h, nil))
+      response.status_code.should eq 400
+    end
+
+    it "connect_websocket runs ws handler and exchanges messages" do
+      ws "/ws-echo" do |socket, _|
+        socket.on_message { |message| socket.send message }
+      end
+      ch = Channel(String).new(1)
+      connect_websocket "/ws-echo" do |client|
+        client.on_message { |message| ch.send message }
+        spawn { client.run }
+        Fiber.yield
+        client.send "ping"
+        ch.receive.should eq "ping"
+      end
+    end
+  end
 end
