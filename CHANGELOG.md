@@ -1,3 +1,8 @@
+# 1.3.0 (04-05-2026)
+
+- WebSocket testing support [#25](https://github.com/kemalcr/spec-kemal/pull/25), thanks @sdogruyol :pray:
+- Set minimum Crystal version to 1.12.0 in `shard.yml`
+
 # 1.2.0 (05-04-2026)
 
 - Add `options` HTTP helper for CORS and preflight-style tests.
