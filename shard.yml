@@ -1,6 +1,5 @@
 name: spec-kemal
 version: 1.2.0
-crystal: '< 2.0.0'
 
 development_dependencies:
   kemal:
@@ -10,5 +9,7 @@ development_dependencies:
 
 authors:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
+
+crystal: ">= 1.12.0"
 
 license: MIT
