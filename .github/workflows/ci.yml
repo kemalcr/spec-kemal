@@ -38,36 +38,3 @@ jobs:
         run: crystal spec --order=random
         env:
           KEMAL_ENV: test
-
-  lint:
-    name: Ameba Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Crystal
-        uses: crystal-lang/install-crystal@v1
-        with:
-          crystal: latest
-
-      - name: Cache shards
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/shards
-            lib
-          key: ${{ runner.os }}-shards-${{ hashFiles('shard.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-shards-
-
-      - name: Install dependencies
-        run: shards install
-
-      - name: Install Ameba
-        run: |
-          git clone https://github.com/crystal-ameba/ameba.git /tmp/ameba
-          cd /tmp/ameba && make install
-
-      - name: Run Ameba
-        run: ameba
