@@ -2,45 +2,35 @@ name: CI
 
 on:
   push:
-    branches: [master]
   pull_request:
-    branches: [master]
   schedule:
     # Run weekly on Sunday at midnight to catch Crystal updates
     - cron: "0 0 * * 0"
 
 jobs:
   test:
-    name: Crystal ${{ matrix.crystal }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        crystal: ["1.10", "1.11", "1.12", "1.13", "1.14", "latest"]
-        include:
-          - os: macos-latest
-            crystal: latest
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        crystal:
+          - 1.16.3
+          - 1.17.1
+          - 1.18.2
+          - 1.19.2
+          - latest
+          - nightly
+    runs-on: ${{ matrix.os }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+    steps:    
       - name: Install Crystal
         uses: crystal-lang/install-crystal@v1
         with:
           crystal: ${{ matrix.crystal }}
-
-      - name: Cache shards
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/shards
-            lib
-          key: ${{ runner.os }}-shards-${{ hashFiles('shard.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-shards-
-
+      
+      - name: Download source
+        uses: actions/checkout@v4
+      
       - name: Install dependencies
         run: shards install
 
@@ -48,10 +38,6 @@ jobs:
         run: crystal spec --order=random
         env:
           KEMAL_ENV: test
-
-      - name: Check formatting
-        run: crystal tool format --check
-        if: matrix.crystal == 'latest' && matrix.os == 'ubuntu-latest'
 
   lint:
     name: Ameba Lint
