@@ -172,11 +172,9 @@ end
 # - `success? : Bool` - True if status is 2xx
 # - `content_type : String?` - Content-Type header value
 #
-# Raises `NilAssertionError` if called before making a request.
+# Raises if called before making a request.
 def response : HTTP::Client::Response
-  # ameba:disable Lint/NotNil
-  Global.response.not_nil!
-  # ameba:enable Lint/NotNil
+  Global.response || raise "No response available. Make a request (get, post, ...) before calling `response`."
 end
 
 require "./spec-kemal/websocket"

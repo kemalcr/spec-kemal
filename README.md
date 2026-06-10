@@ -447,13 +447,13 @@ ENV["KEMAL_ENV"] = "test"
 
 ## Troubleshooting
 
-### "response is nil" Error
+### "No response available" Error
 
 Make sure you've made a request before accessing `response`:
 
 ```crystal
 # Wrong
-response.body  # Error: response is nil
+response.body  # Error: No response available. Make a request (get, post, ...) before calling `response`.
 
 # Correct
 get "/"
