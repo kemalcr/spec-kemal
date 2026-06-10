@@ -35,15 +35,12 @@ Kemal.config.logging = false
 # Links Kemal's [HTTP::Handler] chain. Used by [process_request] and [./spec-kemal/websocket] WebSocket flow.
 module SpecKemal
   def self.build_main_handler : HTTP::Handler
-    main_handler = Kemal.config.handlers.first
-    current_handler = main_handler
-
-    Kemal.config.handlers.each do |handler|
-      current_handler.next = handler
-      current_handler = handler
+    handlers = Kemal.config.handlers
+    handlers.each_cons_pair do |handler, next_handler|
+      handler.next = next_handler
     end
 
-    main_handler
+    handlers.first
   end
 
   # In-memory handler run. Does **not** call [HTTP::Server::Response#upgrade_handler]; use
