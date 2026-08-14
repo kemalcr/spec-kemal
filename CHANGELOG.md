@@ -1,3 +1,7 @@
+# Unreleased
+
+- Add `query` HTTP helper for testing HTTP QUERY ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) routes, matching Kemal's `query` route DSL ([kemal#769](https://github.com/kemalcr/kemal/pull/769)). Needs a Kemal version that ships QUERY support.
+
 # 1.3.0 (04-05-2026)
 
 - WebSocket testing support [#25](https://github.com/kemalcr/spec-kemal/pull/25), thanks @sdogruyol :pray:

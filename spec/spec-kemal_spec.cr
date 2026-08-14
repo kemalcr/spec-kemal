@@ -211,6 +211,54 @@ describe "spec-kemal" do
         response.headers["Allow"].should eq "GET, POST, OPTIONS"
       end
     end
+
+    describe "QUERY" do
+      it "handles query with JSON body" do
+        query "/search" do |env|
+          "Search: #{env.params.json["q"]}"
+        end
+        query "/search",
+          headers: HTTP::Headers{"Content-Type" => "application/json"},
+          body: {q: "crystal"}.to_json
+        response.status_code.should eq 200
+        response.body.should eq "Search: crystal"
+      end
+
+      it "handles query with form encoded body" do
+        query "/search-form" do |env|
+          "Search: #{env.params.body["q"]?}"
+        end
+        query "/search-form",
+          headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+          body: "q=crystal"
+        response.body.should eq "Search: crystal"
+      end
+
+      it "handles query without a body" do
+        query "/search-empty" do
+          "No query"
+        end
+        query "/search-empty"
+        response.status_code.should eq 200
+        response.body.should eq "No query"
+      end
+
+      it "handles query with URL parameters" do
+        query "/indexes/:name" do |env|
+          "Index: #{env.params.url["name"]}"
+        end
+        query "/indexes/products"
+        response.body.should eq "Index: products"
+      end
+
+      it "rejects a query body without a Content-Type header" do
+        query "/search-invalid" do
+          "Never reached"
+        end
+        query "/search-invalid", body: %({"q":"crystal"})
+        response.status_code.should eq 400
+      end
+    end
   end
 
   describe "Response" do

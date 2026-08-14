@@ -12,6 +12,7 @@ Testing helpers for the [Kemal](https://kemalcr.com) web framework. Write expres
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
   - [HTTP Methods](#http-methods)
+  - [QUERY requests](#query-requests)
   - [WebSocket testing](#websocket-testing)
   - [Response Object](#response-object)
   - [Headers](#headers)
@@ -113,6 +114,7 @@ spec-kemal provides helper methods for all standard HTTP verbs:
 | `delete(path, headers?, body?)` | Sends a DELETE request |
 | `head(path, headers?, body?)` | Sends a HEAD request |
 | `options(path, headers?, body?)` | Sends an OPTIONS request |
+| `query(path, headers?, body?)` | Sends a QUERY request ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) |
 
 **Parameters:**
 
@@ -123,6 +125,30 @@ spec-kemal provides helper methods for all standard HTTP verbs:
 An additional overload is available for GET with a WebSocket handshake:
 
 - `get(path, headers?, body?, *, websocket : Bool)` — when `websocket` is `true`, builds a valid `Upgrade: websocket` request (see [WebSocket testing](#websocket-testing)).
+
+### QUERY requests
+
+Kemal supports the HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)), a safe and idempotent method that carries the query in the request body instead of the URL. The `query` helper works like every other verb:
+
+```crystal
+query "/search" do |env|
+  env.params.json["q"].to_s
+end
+
+query "/search",
+  headers: HTTP::Headers{"Content-Type" => "application/json"},
+  body: {q: "crystal"}.to_json
+
+response.status_code.should eq 200
+response.body.should eq "crystal"
+```
+
+Kemal rejects a QUERY request that has a body but **no** `Content-Type` header with `400`, so set the header whenever you send a query body:
+
+```crystal
+query "/search", body: %({"q":"crystal"})
+response.status_code.should eq 400
+```
 
 ### WebSocket testing
 
