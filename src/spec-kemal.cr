@@ -25,6 +25,7 @@
 # - `delete(path, headers?, body?)` - Send DELETE request
 # - `head(path, headers?, body?)` - Send HEAD request
 # - `options(path, headers?, body?)` - Send OPTIONS request
+# - `query(path, headers?, body?)` - Send QUERY request (RFC 10008)
 
 require "spec"
 require "kemal"
@@ -121,8 +122,16 @@ end
 #
 # # DELETE request
 # delete "/api/users/1"
+#
+# # QUERY request (RFC 10008) - the query travels in the body
+# query "/search",
+#   headers: HTTP::Headers{"Content-Type" => "application/json"},
+#   body: {q: "crystal"}.to_json
 # ```
-{% for method in %w[get post put patch delete head options] %}
+#
+# NOTE: Kemal rejects a QUERY request that has a body but no `Content-Type`
+# header with `400`, so remember to set it when sending a query body.
+{% for method in %w[get post put patch delete head options query] %}
   # Sends a {{ method.id.upcase }} request to the specified path.
   #
   # ## Parameters

@@ -11,24 +11,33 @@ require "socket"
 # :nodoc:
 DEFAULT_WEBSOCKET_KEY = "dGhlIHNhbXBsZSBub25jZQ=="
 
+# :nodoc:
+DEFAULT_WEBSOCKET_HOST = "localhost"
+
+# :nodoc:
+DEFAULT_WEBSOCKET_ORIGIN = "http://#{DEFAULT_WEBSOCKET_HOST}"
+
 # Returns headers for a valid WebSocket upgrade request.
 # Use a fixed *sec_key* for deterministic [Sec-WebSocket-Accept] in assertions, or pass `nil` to use
 # [DEFAULT_WEBSOCKET_KEY] (RFC 6455 example value).
+#
+# `Host` and `Origin` default to [DEFAULT_WEBSOCKET_HOST] / [DEFAULT_WEBSOCKET_ORIGIN] so the
+# handshake passes Kemal's same-origin check — Kemal rejects an upgrade whose `Origin` is missing
+# or does not match `Host` with `403`. Pass *origin* to test a cross-origin request, or override
+# `Host` / delete `Origin` on the returned headers to test the other rejection paths.
 def websocket_request_headers(
   sec_key : String? = nil,
   origin : String? = nil,
 ) : HTTP::Headers
   key = sec_key || DEFAULT_WEBSOCKET_KEY
-  headers = HTTP::Headers{
+  HTTP::Headers{
+    "Host"                  => DEFAULT_WEBSOCKET_HOST,
+    "Origin"                => origin || DEFAULT_WEBSOCKET_ORIGIN,
     "Connection"            => "Upgrade",
     "Upgrade"               => "websocket",
     "Sec-WebSocket-Version" => HTTP::WebSocket::Protocol::VERSION,
     "Sec-WebSocket-Key"     => key,
   }
-  if o = origin
-    headers["Origin"] = o
-  end
-  headers
 end
 
 # [GET] with a WebSocket-style handshake. Merges [websocket_request_headers] when *websocket* is `true`
@@ -85,6 +94,11 @@ def inner_connect_websocket(
     context = HTTP::Server::Context.new(request, response)
     main_handler = SpecKemal.build_main_handler
     main_handler.call(context)
+
+    # Only `HTTP::Server::Response#upgrade` writes the `101` out on its own. A rejected handshake
+    # (Kemal answers `403` for a bad `Origin`, `426` for a bad version, ...) stays in the response
+    # buffer, so close it first or the read below blocks on an empty socket forever.
+    response.close unless response.upgrade_handler
 
     handshake = HTTP::Client::Response.from_io(client_io, ignore_body: true, decompress: false)
     Global.response = handshake

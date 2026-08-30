@@ -21,8 +21,11 @@ jobs:
           - latest
           - nightly
     runs-on: ${{ matrix.os }}
+    # A spec that blocks (e.g. on a socket read) would otherwise hold the runner
+    # for GitHub's 6 hour default.
+    timeout-minutes: 10
 
-    steps:    
+    steps:
       - name: Install Crystal
         uses: crystal-lang/install-crystal@v1
         with:

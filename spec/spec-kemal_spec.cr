@@ -211,6 +211,54 @@ describe "spec-kemal" do
         response.headers["Allow"].should eq "GET, POST, OPTIONS"
       end
     end
+
+    describe "QUERY" do
+      it "handles query with JSON body" do
+        query "/search" do |env|
+          "Search: #{env.params.json["q"]}"
+        end
+        query "/search",
+          headers: HTTP::Headers{"Content-Type" => "application/json"},
+          body: {q: "crystal"}.to_json
+        response.status_code.should eq 200
+        response.body.should eq "Search: crystal"
+      end
+
+      it "handles query with form encoded body" do
+        query "/search-form" do |env|
+          "Search: #{env.params.body["q"]?}"
+        end
+        query "/search-form",
+          headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+          body: "q=crystal"
+        response.body.should eq "Search: crystal"
+      end
+
+      it "handles query without a body" do
+        query "/search-empty" do
+          "No query"
+        end
+        query "/search-empty"
+        response.status_code.should eq 200
+        response.body.should eq "No query"
+      end
+
+      it "handles query with URL parameters" do
+        query "/indexes/:name" do |env|
+          "Index: #{env.params.url["name"]}"
+        end
+        query "/indexes/products"
+        response.body.should eq "Index: products"
+      end
+
+      it "rejects a query body without a Content-Type header" do
+        query "/search-invalid" do
+          "Never reached"
+        end
+        query "/search-invalid", body: %({"q":"crystal"})
+        response.status_code.should eq 400
+      end
+    end
   end
 
   describe "Response" do
@@ -542,6 +590,29 @@ describe "spec-kemal" do
       response.status_code.should eq 400
     end
 
+    it "rejects a cross-origin upgrade" do
+      ws "/ws-origin" { |_| }
+      h = websocket_request_headers(origin: "http://evil.example")
+      SpecKemal.process_request(HTTP::Request.new("GET", "/ws-origin", h, nil))
+      response.status_code.should eq 403
+    end
+
+    it "rejects an upgrade without an Origin header" do
+      ws "/ws-no-origin" { |_| }
+      h = websocket_request_headers
+      h.delete "Origin"
+      SpecKemal.process_request(HTTP::Request.new("GET", "/ws-no-origin", h, nil))
+      response.status_code.should eq 403
+    end
+
+    it "allows a cross-origin upgrade listed in websocket_allowed_origins" do
+      Kemal.config.websocket_allowed_origins = ["http://trusted.example"]
+      ws "/ws-allowed" { |_| }
+      h = websocket_request_headers(origin: "http://trusted.example")
+      SpecKemal.process_request(HTTP::Request.new("GET", "/ws-allowed", h, nil))
+      response.status_code.should eq 101
+    end
+
     it "connect_websocket runs ws handler and exchanges messages" do
       ws "/ws-echo" do |socket, _|
         socket.on_message { |message| socket.send message }
@@ -554,6 +625,16 @@ describe "spec-kemal" do
         client.send "ping"
         ch.receive.should eq "ping"
       end
+    end
+
+    # Regression: a rejected handshake used to leave the response buffered, so reading it
+    # blocked forever and the whole spec run hung.
+    it "connect_websocket raises on a rejected handshake instead of hanging" do
+      ws "/ws-rejected" { |_| }
+      expect_raises Exception, /did not set a WebSocket upgrade \(status 403/ do
+        connect_websocket("/ws-rejected", origin: "http://evil.example") { |_| }
+      end
+      response.status_code.should eq 403
     end
   end
 end

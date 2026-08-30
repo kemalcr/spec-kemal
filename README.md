@@ -12,6 +12,7 @@ Testing helpers for the [Kemal](https://kemalcr.com) web framework. Write expres
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
   - [HTTP Methods](#http-methods)
+  - [QUERY requests](#query-requests)
   - [WebSocket testing](#websocket-testing)
   - [Response Object](#response-object)
   - [Headers](#headers)
@@ -113,6 +114,7 @@ spec-kemal provides helper methods for all standard HTTP verbs:
 | `delete(path, headers?, body?)` | Sends a DELETE request |
 | `head(path, headers?, body?)` | Sends a HEAD request |
 | `options(path, headers?, body?)` | Sends an OPTIONS request |
+| `query(path, headers?, body?)` | Sends a QUERY request ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) |
 
 **Parameters:**
 
@@ -123,6 +125,30 @@ spec-kemal provides helper methods for all standard HTTP verbs:
 An additional overload is available for GET with a WebSocket handshake:
 
 - `get(path, headers?, body?, *, websocket : Bool)` — when `websocket` is `true`, builds a valid `Upgrade: websocket` request (see [WebSocket testing](#websocket-testing)).
+
+### QUERY requests
+
+Kemal supports the HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)), a safe and idempotent method that carries the query in the request body instead of the URL. The `query` helper works like every other verb:
+
+```crystal
+query "/search" do |env|
+  env.params.json["q"].to_s
+end
+
+query "/search",
+  headers: HTTP::Headers{"Content-Type" => "application/json"},
+  body: {q: "crystal"}.to_json
+
+response.status_code.should eq 200
+response.body.should eq "crystal"
+```
+
+Kemal rejects a QUERY request that has a body but **no** `Content-Type` header with `400`, so set the header whenever you send a query body:
+
+```crystal
+query "/search", body: %({"q":"crystal"})
+response.status_code.should eq 400
+```
 
 ### WebSocket testing
 
@@ -177,6 +203,28 @@ SpecKemal.process_request HTTP::Request.new("GET", "/chat", bad)
 response.status_code.should eq 426
 ```
 
+#### `Origin` and same-origin checks
+
+Kemal validates the handshake's `Origin` against the request `Host` and answers **403** when it is missing or does not match. spec-kemal therefore sends `Host: localhost` and `Origin: http://localhost` by default, so a plain `get "/chat", websocket: true` or `connect_websocket "/chat"` handshakes successfully.
+
+Pass `origin:` to test what your app does with another origin:
+
+```crystal
+cross = websocket_request_headers(origin: "http://evil.example")
+SpecKemal.process_request HTTP::Request.new("GET", "/chat", cross)
+response.status_code.should eq 403
+```
+
+If the app under test allows other origins, configure it the same way it runs in production:
+
+```crystal
+Kemal.config.websocket_allowed_origins = ["https://myapp.test"]
+
+connect_websocket "/chat", origin: "https://myapp.test" do |client|
+  # ...
+end
+```
+
 #### Full session (`connect_websocket`)
 
 Runs the real upgrade on a loopback socket pair (UNIX socket pair on Unix-like systems, TCP on Windows), then yields a client [HTTP::WebSocket](https://crystal-lang.org/api/latest/HTTP/WebSocket.html). After the block returns, the client and server I/O are closed. The last `response` is the client’s **101 Switching Protocols** handshake.
@@ -201,12 +249,16 @@ Optional keyword arguments on `connect_websocket`:
 
 - `headers` — merged after the default WebSocket upgrade headers (e.g. `Authorization`, extra cookies).
 - `sec_key` — fixed `Sec-WebSocket-Key` for deterministic `Sec-WebSocket-Accept` checks.
-- `origin` — sets `Origin` when your handler rejects unknown origins.
+- `origin` — overrides the default `Origin` (see [`Origin` and same-origin checks](#origin-and-same-origin-checks)).
+
+A handshake Kemal rejects raises instead of yielding a client, and `response` holds the rejection:
 
 ```crystal
-connect_websocket "/chat", origin: "https://myapp.test" do |client|
-  # ...
+expect_raises Exception, /did not set a WebSocket upgrade/ do
+  connect_websocket("/chat", origin: "http://evil.example") { |_| }
 end
+
+response.status_code.should eq 403
 ```
 
 For the same handshake object **inside** the block (not only via `response` after), use `inner_connect_websocket` (advanced; see `src/spec-kemal/websocket.cr`).
